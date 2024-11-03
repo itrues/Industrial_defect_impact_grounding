@@ -1,0 +1,7 @@
+{
+    "combine_datasets": ["refexp"],
+    "combine_datasets_val": ["refexp"],
+    "refexp_dataset_name": "knowledge_mvtec_anomaly_detection_ratio_8_seed_65",
+    "coco_path": "/home/cike/workspace/data/refer/mdetr/mdetr/data/mvtec_anomaly_detection_masked/",
+    "refexp_ann_path": "/home/cike/workspace/data/refer/mdetr/mdetr/data/mvtec_anomaly_detection_masked/"
+}

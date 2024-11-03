@@ -1,0 +1,9 @@
+{
+    "combine_datasets": ["refexp"],
+    "combine_datasets_val": ["refexp"],
+    "refexp_dataset_name": "mvtec_anomaly_detection",
+    "coco_path": "/home/cike/workspace/data/refer/mdetr/data/mvtec_anomaly_detection/",
+    "refexp_ann_path": "/home/cike/workspace/data/refer/mdetr/data/mvtec_anomaly_detection/",
+    "epochs": 60,
+    "lr_drop": 2
+}
