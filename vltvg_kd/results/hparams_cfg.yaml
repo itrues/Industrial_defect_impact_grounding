@@ -1,0 +1,211 @@
+lr: 0.0001
+lr_backbone: 1.0e-05
+lr_vis_enc: 1.0e-05
+lr_bert: 1.0e-05
+batch_size: 16
+weight_decay: 0.0001
+epochs: 120
+lr_drop: 60
+clip_max_norm: 0.1
+checkpoint_step: 5
+checkpoint_latest: false
+checkpoint_best: true
+load_weights_path: pretrained_checkpoints/detr-r101-referit.pth
+freeze_modules:
+- backbone
+- input_proj
+- trans_encoder
+- bert
+freeze_param_names: []
+freeze_epochs: 10
+freeze_losses: []
+backbone: resnet101
+dilation: false
+position_embedding: sine
+enc_layers: 6
+dec_layers: 6
+dim_feedforward: 2048
+hidden_dim: 256
+dropout: 0.1
+nheads: 8
+num_queries: 1
+pre_norm: false
+bert_model: bert-base-uncased
+bert_token_mode: bert-base-uncased
+bert_output_dim: 768
+bert_output_layers: 4
+max_query_len: 40
+aux_loss: true
+loss_loc: loss_boxes
+box_xyxy: false
+drop_every_steps: 30
+reinit_weights_epoch:
+- 20
+- 55
+- 75
+reinit_weights_modules: []
+distillation_temperature: 2.0
+distillation_alpha: 2.0
+distillation_scaled_weight: 10.0
+text_distillation: false
+encoder_distillation: true
+detection_head_distillation: true
+decode_feature_distillation: false
+accumulate_update_weights: false
+update_ema_infer_teacher_model: false
+update_ema_teacher_model: true
+ema: false
+custom_milestones:
+- 60
+- 80
+- 90
+ema_decay: 0.9995
+resume_teacher: ''
+bbox_loss_coef: 5
+giou_loss_coef: 2
+other_loss_coefs: {}
+data_root: ./data/
+split_root: ./split/data/
+dataset: mvtec_anomaly_detection
+defined_split: deblurred
+test_split: val
+img_size: 640
+cache_images: false
+output_dir: results/
+save_pred_path: ''
+device: cuda
+seed: 42
+resume: work_dirs/VLTVG_R101_gref_umd_knowledge_distillation_batch_4_epoch_120_emadecay_0.995/checkpoint_best_acc.pth
+start_epoch: 0
+eval: true
+num_workers: 4
+pin_memory: true
+collate_fn: collate_fn
+batch_size_val: 1
+batch_size_test: 1
+train_transforms:
+- type: RandomSelect
+  transforms1:
+    type: RandomResize
+    sizes:
+    - 448
+    - 480
+    - 512
+    - 544
+    - 576
+    - 608
+    - 640
+  transforms2:
+    type: Compose
+    transforms:
+    - type: RandomResize
+      sizes:
+      - 400
+      - 500
+      - 600
+      resize_long_side: false
+    - type: RandomSizeCrop
+      min_size: 384
+      max_size: 600
+      check_method:
+        func: iou
+        iou_thres: 0.5
+    - type: RandomResize
+      sizes:
+      - 448
+      - 480
+      - 512
+      - 544
+      - 576
+      - 608
+      - 640
+  p: 0.5
+- type: ColorJitter
+  brightness: 0.4
+  contrast: 0.4
+  saturation: 0.4
+- type: RandomHorizontalFlip
+- type: ToTensor
+  keys: []
+- type: NormalizeAndPad
+  size: 640
+  aug_translate: true
+test_transforms:
+- type: RandomResize
+  sizes:
+  - 640
+  record_resize_info: true
+- type: ToTensor
+  keys: []
+- type: NormalizeAndPad
+  size: 640
+  center_place: true
+enable_batch_accum: false
+world_size: 1
+dist_url: env://
+config: configs/VLTVG_R101_flickr.py
+model_config:
+  decoder:
+    type: DecoderWithExtraEncoder
+    num_queries: 1
+    query_dim: 256
+    norm_dim: 256
+    return_intermediate: true
+    num_layers: 6
+    layer:
+      type: MultiStageDecoderLayer
+      d_model: 256
+      dim_feedforward: 2048
+      dropout: 0.0
+      word_attn_args:
+        type: MultiheadAttention
+        embed_dim: 256
+        num_heads: 8
+        dropout: 0.1
+      img_attn_args:
+        type: MultiheadAttention
+        embed_dim: 256
+        num_heads: 8
+        dropout: 0.1
+      img_feat_chunk_num: 2
+    num_extra_layers: 1
+    extra_layer:
+      type: DiscriminativeFeatEncLayer
+      d_model: 256
+      img_query_with_pos: false
+      img2text_attn_args:
+        type: MultiheadAttention
+        embed_dim: 256
+        num_heads: 8
+        dropout: 0.1
+      img2textcond_attn_args:
+        type: MultiheadAttention
+        embed_dim: 256
+        num_heads: 8
+        dropout: 0.1
+      img2img_attn_args:
+        type: MHAttentionRPE
+        d_model: 256
+        h: 8
+        dropout: 0.1
+        pos_x_range:
+        - -20
+        - 20
+        pos_y_range:
+        - -20
+        - 20
+        pos_index_offset: 20
+      vl_verify:
+        text_proj:
+          input_dim: 256
+          hidden_dim: 256
+          output_dim: 256
+          num_layers: 1
+        img_proj:
+          input_dim: 256
+          hidden_dim: 256
+          output_dim: 256
+          num_layers: 1
+        scale: 1.0
+        sigma: 0.5
+        pow: 2.0
